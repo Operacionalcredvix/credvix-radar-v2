@@ -18,7 +18,7 @@ export function RadarHeader({
     <header className="flex items-center justify-between">
       <div className="flex items-center gap-4">
         <img
-          src="/credvix-mark.png"
+          src={`${import.meta.env.BASE_URL}credvix-mark.png`}
           alt=""
           className="h-12 w-12 shrink-0 object-contain"
         />
