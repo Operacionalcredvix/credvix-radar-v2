@@ -111,14 +111,13 @@ export function PaidTodayCard({
 
         <div className="mt-[7px] flex items-center justify-between">
           <p className="text-[14px] text-[#aaa29c]">
-            Ritmo esperado agora{' '}
+            Ritmo do dia{' '}
             <strong className="font-semibold text-white">
               {formatPercent(
-                summary.pace.expectedPercent ?? 0,
+                summary.pace.actualPercent,
                 0,
               )}
-            </strong>{' '}
-            acima do ritmo
+            </strong>
           </p>
 
           <p className="text-[14px] text-[#aaa29c]">
@@ -211,9 +210,11 @@ export function PaidTodayCard({
               text-white
             "
           >
-            {formatDuration(
-              summary.cycle.remainingMinutes ?? 0,
-            )}
+            {summary.cycle.remainingMinutes === null
+              ? '--h--'
+              : formatDuration(
+                summary.cycle.remainingMinutes,
+              )}
           </strong>
         </div>
       </div>

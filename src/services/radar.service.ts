@@ -1,16 +1,51 @@
-import { radarMock } from '../mocks/radar.mock'
+import {
+  adaptProductionApiToRadar,
+  type ProductionApiPayload,
+} from './radar.adapter'
+
 import type { RadarPayload } from '../types/radar'
 
-const MOCK_DELAY_MS = 400
+const DEFAULT_API_URL =
+  'https://copa-colmeias-tv-panel.vercel.app/api/producao?refresh=1'
 
-function wait(ms: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms)
-  })
-}
+const API_URL =
+  import.meta.env.VITE_RADAR_API_URL ??
+  DEFAULT_API_URL
 
 export async function getRadarData(): Promise<RadarPayload> {
-  await wait(MOCK_DELAY_MS)
+  const response = await fetch(
+    API_URL,
+    {
+      method: 'GET',
 
-  return radarMock
+      cache: 'no-store',
+
+      headers: {
+        Accept: 'application/json',
+      },
+    },
+  )
+
+  let payload: ProductionApiPayload
+
+  try {
+    payload =
+      (await response.json()) as ProductionApiPayload
+  } catch {
+    throw new Error(
+      'A API do Radar retornou uma resposta inválida.',
+    )
+  }
+
+  if (!response.ok || !payload.ok) {
+    throw new Error(
+      payload.message ||
+        payload.error ||
+        `Falha na API do Radar: HTTP ${response.status}.`,
+    )
+  }
+
+  return adaptProductionApiToRadar(
+    payload,
+  )
 }

@@ -178,7 +178,7 @@ export function GoalsCard({
             {formatCompactCurrency(
               summary.pendingPayment,
             )}{' '}
-            aguardando checkout
+            aguardando pagamento
           </span>
         </div>
       </div>
