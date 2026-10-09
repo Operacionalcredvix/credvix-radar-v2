@@ -151,7 +151,9 @@ export type RadarDiagnosis = {
   headline: string
   detail: string
 
-  generatedBy: 'deterministic'
+  generatedBy:
+  | 'deterministic'
+  | 'deepseek'
 }
 
 export type RadarQuality = {

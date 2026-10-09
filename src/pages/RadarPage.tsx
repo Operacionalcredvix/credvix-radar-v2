@@ -42,6 +42,7 @@ export function RadarPage() {
   return (
     <main
       className="
+      radar-screen
       flex
       h-dvh
       flex-col
@@ -59,6 +60,7 @@ export function RadarPage() {
 
       <div
         className="
+        radar-screen-top
         grid
         grid-cols-[1.38fr_1fr]
         gap-[20px]
@@ -75,6 +77,7 @@ export function RadarPage() {
 
       <div
         className="
+        radar-screen-bottom
         grid
         grid-cols-[1.38fr_1fr]
         items-stretch

@@ -17,3 +17,195 @@ body {
   background: #f7f5f2;
   color: #171412;
 }
+
+/* Radar TV: viewport horizontal com pouca altura */
+@media (max-height: 800px) and (min-aspect-ratio: 8/5) {
+
+  /* Layout principal */
+  .radar-screen {
+    gap: 8px;
+    padding: 9px 18px;
+  }
+
+  .radar-screen-top,
+  .radar-screen-bottom {
+    gap: 12px;
+  }
+
+  /* PAGO HOJE */
+  .radar-screen-top > section:first-child {
+    padding: 10px 21px;
+  }
+
+  .radar-screen-top > section:first-child
+  > div:first-child strong {
+    font-size: 36px;
+  }
+
+  .radar-screen-top > section:first-child > p {
+    margin-top: 5px;
+    font-size: 50px;
+  }
+
+  .radar-screen-top > section:first-child
+  > div:nth-of-type(2) {
+    margin-top: 7px;
+  }
+
+  .radar-screen-top > section:first-child
+  > div:nth-of-type(2) > div:first-child {
+    height: 12px;
+  }
+
+  .radar-screen-top > section:first-child
+  > div:nth-of-type(3) {
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  .radar-screen-top > section:first-child
+  > div:last-child > div:first-child
+  > div:first-child strong {
+    font-size: 24px;
+  }
+
+  .radar-screen-top > section:first-child
+  > div:last-child > div:first-child
+  > div:nth-child(2),
+  .radar-screen-top > section:first-child
+  > div:last-child > div:first-child
+  > div:last-child {
+    margin-top: 4px;
+  }
+
+  /* METAS */
+  .radar-screen-top > section:nth-child(2) {
+    padding: 10px 20px;
+  }
+
+  .radar-screen-top > section:nth-child(2)
+  > div:not(:first-child) {
+    margin-top: 10px;
+  }
+
+  .radar-screen-top > section:nth-child(2)
+  > div:not(:first-child)
+  > div:first-child h3 {
+    font-size: 16px;
+  }
+
+  .radar-screen-top > section:nth-child(2)
+  > div:not(:first-child)
+  > div:first-child strong {
+    font-size: 24px;
+  }
+
+  .radar-screen-top > section:nth-child(2)
+  > div:not(:first-child)
+  > div:nth-child(2),
+  .radar-screen-top > section:nth-child(2)
+  > div:not(:first-child)
+  > div:last-child {
+    margin-top: 5px;
+  }
+
+  /* RANKING */
+  .radar-screen-bottom > section:first-child {
+    padding: 9px 18px;
+  }
+
+  .radar-screen-bottom > section:first-child
+  > div:last-child {
+    margin-top: 6px;
+  }
+
+  .radar-screen-bottom > section:first-child article {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .radar-screen-bottom > section:first-child
+  article + article {
+    margin-top: 4px;
+  }
+
+  .radar-screen-bottom > section:first-child
+  article > div:first-child > span:first-child {
+    height: 28px;
+    width: 28px;
+  }
+
+  .radar-screen-bottom > section:first-child
+  article > div:first-child h3 {
+    font-size: 16px;
+  }
+
+  .radar-screen-bottom > section:first-child
+  article > div:first-child strong {
+    font-size: 23px;
+  }
+
+  .radar-screen-bottom > section:first-child
+  article > div:nth-child(2),
+  .radar-screen-bottom > section:first-child
+  article > div:last-child {
+    margin-top: 4px;
+  }
+
+  .radar-screen-bottom > section:first-child
+  article > div:last-child > span {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  /* PRIORIDADES */
+  .radar-screen-bottom > section:last-child > header {
+    min-height: 41px;
+    padding: 5px 18px;
+  }
+
+  .radar-screen-bottom > section:last-child
+  > header h2 {
+    font-size: 14px;
+  }
+
+  .radar-screen-bottom > section:last-child
+  > div > article {
+    padding: 2px 18px;
+  }
+
+  .radar-screen-bottom > section:last-child
+  > div > article > div:nth-child(2)
+  > div:first-child > span:first-child {
+    padding: 2px 7px;
+  }
+
+  .radar-screen-bottom > section:last-child
+  > div > article > div:nth-child(2)
+  > div:last-child {
+    margin-top: 2px;
+  }
+
+  .radar-screen-bottom > section:last-child
+  > div > article > strong {
+    font-size: 18px;
+  }
+
+  .radar-screen-bottom > section:last-child > footer {
+    min-height: 41px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .radar-screen-bottom > section:last-child
+  > footer strong {
+    font-size: 23px;
+  }
+
+  /* DIAGNÓSTICO */
+  .radar-screen > section:last-child {
+    min-height: 43px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}

@@ -1,15 +1,20 @@
 import type {
   Coordinator,
   GoalIndicator,
-  GoalTone,
   RadarPayload,
   RadarPriority,
   RadarStatus,
   Store,
 } from '../types/radar'
 
-import { formatCompactCurrency } from '../utils/formatCurrency'
-import { formatPercent } from '../utils/formatPercent'
+import {
+  getDailyTone,
+  getPrioritySeverity,
+  getProjectionTone,
+  getSoldTone,
+} from '../features/radar/radar.rules'
+
+import { buildRadarDiagnosis } from '../features/radar/radar.diagnosis'
 
 type ApiCoordinator = {
   name?: string
@@ -74,16 +79,10 @@ const COORDINATOR_NAMES = [
   'MARIELEN',
 ] as const
 
-const PROJECTION_CRITICAL = 70
-const PROJECTION_POSITIVE = 90
-
-const DAILY_CRITICAL = 35
-const DAILY_ATTENTION = 80
-
 type PriorityCandidate = {
   id: string
-
   type: RadarPriority['type']
+  severity: RadarPriority['severity']
 
   coordinatorId: string
   storeId?: string
@@ -143,18 +142,24 @@ function coordinatorStatus(
   zeroStores: number,
   dailyPercent: number,
 ): RadarStatus {
+  const projectionTone =
+    getProjectionTone(projection)
+
+  const dailyTone =
+    getDailyTone(dailyPercent)
+
   if (
-    projection < PROJECTION_CRITICAL ||
-    zeroStores >= 3 ||
-    dailyPercent < DAILY_CRITICAL
+    projectionTone === 'critical' ||
+    dailyTone === 'critical' ||
+    zeroStores >= 3
   ) {
     return 'critical'
   }
 
   if (
-    projection < PROJECTION_POSITIVE ||
-    zeroStores > 0 ||
-    dailyPercent < DAILY_ATTENTION
+    projectionTone === 'attention' ||
+    dailyTone === 'attention' ||
+    zeroStores > 0
   ) {
     return 'attention'
   }
@@ -167,7 +172,13 @@ function coordinatorReason(
   zeroStores: number,
   dailyPercent: number,
 ) {
-  if (projection < PROJECTION_CRITICAL) {
+  const projectionTone =
+    getProjectionTone(projection)
+
+  const dailyTone =
+    getDailyTone(dailyPercent)
+
+  if (projectionTone === 'critical') {
     return 'Projeção mensal crítica'
   }
 
@@ -175,85 +186,76 @@ function coordinatorReason(
     return `${zeroStores} lojas zeradas`
   }
 
-  if (dailyPercent < DAILY_CRITICAL) {
+  if (dailyTone === 'critical') {
     return 'Ritmo diário crítico'
   }
 
-  if (projection < PROJECTION_POSITIVE) {
+  if (projectionTone === 'attention') {
     return 'Projeção abaixo do ideal'
   }
 
   if (zeroStores > 0) {
     return `${zeroStores} ${zeroStores === 1
-        ? 'loja zerada'
-        : 'lojas zeradas'
+      ? 'loja zerada'
+      : 'lojas zeradas'
       }`
   }
 
-  if (dailyPercent < DAILY_ATTENTION) {
+  if (dailyTone === 'attention') {
     return 'Diária exige acompanhamento'
   }
 
   return 'Operação controlada'
 }
 
-function projectionTone(
-  projection: number,
-): GoalTone {
-  if (projection >= PROJECTION_POSITIVE) {
-    return 'positive'
-  }
-
-  if (projection >= PROJECTION_CRITICAL) {
-    return 'attention'
-  }
-
-  return 'critical'
-}
-
 function soldTodayIndicator(
   percent: number,
 ): GoalIndicator {
-  if (percent >= 100) {
+  const tone = getSoldTone(percent)
+
+  if (tone === 'positive') {
     return {
       label: 'Meta entregue',
-      tone: 'positive',
+      tone,
     }
   }
 
-  if (percent >= 70) {
+  if (tone === 'attention') {
     return {
       label: 'Próxima da meta',
-      tone: 'attention',
+      tone,
     }
   }
 
   return {
     label: 'Abaixo da meta',
-    tone: 'critical',
+    tone,
   }
 }
 
 function projectionIndicator(
   percent: number,
 ): GoalIndicator {
-  if (percent >= 100) {
+  const tone =
+    getProjectionTone(percent)
+
+  if (tone === 'positive') {
     return {
-      label: 'Meta projetada',
-      tone: 'positive',
+      label: 'Projeção saudável',
+      tone,
     }
   }
 
-  if (percent >= PROJECTION_CRITICAL) {
+  if (tone === 'attention') {
     return {
       label: 'Abaixo da meta',
-      tone: 'attention',
+      tone,
     }
   }
 
   return {
-    label: 'Abaixo da meta',
-    tone: 'critical',
+    label: 'Projeção crítica',
+    tone,
   }
 }
 
@@ -531,7 +533,7 @@ function buildCoordinators(
           ),
 
         projectionTone:
-          projectionTone(
+          getProjectionTone(
             monthProjectionPercent,
           ),
 
@@ -573,235 +575,108 @@ function buildCoordinators(
 function buildPriorities(
   stores: Store[],
 ): RadarPriority[] {
-  const zero: PriorityCandidate[] =
-    stores
-      .filter((store) => store.isZero)
-      .sort(
-        (a, b) =>
-          b.dailyGoal - a.dailyGoal,
-      )
-      .map((store) => ({
+  // 1. Lojas zeradas
+  const zero: PriorityCandidate[] = stores
+    .filter((store) => store.isZero)
+    .sort((a, b) => b.dailyGoal - a.dailyGoal)
+    .map((store) => {
+      const recoverableGap = store.dailyGap
+
+      return {
         id: `priority-zero-${store.id}`,
-
-        type: 'zero',
-
-        coordinatorId:
-          store.coordinatorId,
-
-        storeId: store.id,
-
-        title: store.name,
-
-        detail:
-          'Zerada - Acionar carteira',
-
-        recoverableGap:
-          store.dailyGoal,
-      }))
-
-  const conversion: PriorityCandidate[] =
-    stores
-      .filter(
-        (store) =>
-          !store.isZero &&
-          store.pendingPayment > 0 &&
-          store.dailyGap > 0,
-      )
-      .map((store) => ({
-        store,
-
-        recoverableGap:
-          Math.min(
-            store.pendingPayment,
-            store.dailyGap,
-          ),
-      }))
-      .sort(
-        (a, b) =>
-          b.recoverableGap -
-          a.recoverableGap,
-      )
-      .map(
-        ({
+        type: 'zero' as const,
+        severity: getPrioritySeverity(
           store,
           recoverableGap,
-        }) => ({
-          id:
-            `priority-conversion-${store.id}`,
+        ),
 
-          type: 'conversion',
-
-          coordinatorId:
-            store.coordinatorId,
-
-          storeId: store.id,
-
-          title: store.name,
-
-          detail:
-            'Conversão - Converter vendido em pago',
-
-          recoverableGap,
-        }),
-      )
-
-  const belowDaily: PriorityCandidate[] =
-    stores
-      .filter(
-        (store) =>
-          !store.isZero &&
-          store.pendingPayment <= 0 &&
-          store.dailyGap > 0,
-      )
-      .sort(
-        (a, b) =>
-          b.dailyGap - a.dailyGap,
-      )
-      .map((store) => ({
-        id:
-          `priority-gap-${store.id}`,
-
-        type: 'below-daily',
-
-        coordinatorId:
-          store.coordinatorId,
-
+        coordinatorId: store.coordinatorId,
         storeId: store.id,
 
         title: store.name,
+        detail: 'Zerada - Acionar carteira',
 
-        detail:
-          'Abaixo da diária - Recuperar produção',
+        recoverableGap,
+      }
+    })
 
-        recoverableGap:
-          store.dailyGap,
-      }))
+  // 2. Vendas aguardando pagamento
+  const conversion: PriorityCandidate[] = stores
+    .filter(
+      (store) =>
+        !store.isZero &&
+        store.pendingPayment > 0 &&
+        store.dailyGap > 0,
+    )
+    .map((store) => {
+      const recoverableGap = Math.min(
+        store.pendingPayment,
+        store.dailyGap,
+      )
 
+      return {
+        id: `priority-conversion-${store.id}`,
+        type: 'conversion' as const,
+        severity: getPrioritySeverity(
+          store,
+          recoverableGap,
+        ),
+
+        coordinatorId: store.coordinatorId,
+        storeId: store.id,
+
+        title: store.name,
+        detail: 'Conversão - Converter vendido em pago',
+
+        recoverableGap,
+      }
+    })
+    .sort(
+      (a, b) =>
+        b.recoverableGap - a.recoverableGap,
+    )
+
+  // 3. Lojas abaixo da meta diária
+  const belowDaily: PriorityCandidate[] = stores
+    .filter(
+      (store) =>
+        !store.isZero &&
+        store.pendingPayment <= 0 &&
+        store.dailyGap > 0,
+    )
+    .map((store) => ({
+      id: `priority-gap-${store.id}`,
+      type: 'below-daily' as const,
+      severity: getPrioritySeverity(
+        store,
+        store.dailyGap,
+      ),
+
+      coordinatorId: store.coordinatorId,
+      storeId: store.id,
+
+      title: store.name,
+      detail: 'Abaixo da diária - Recuperar produção',
+
+      recoverableGap: store.dailyGap,
+    }))
+    .sort(
+      (a, b) =>
+        b.recoverableGap - a.recoverableGap,
+    )
+
+  // Mantém a ordem operacional:
+  // zeradas > conversão > abaixo da diária.
   return [
     ...zero,
     ...conversion,
     ...belowDaily,
   ]
     .slice(0, 5)
-    .map(
-      (
-        priority,
-        index,
-      ): RadarPriority => ({
-        ...priority,
-
-        position: index + 1,
-
-        severity:
-          index <= 1
-            ? 'critical'
-            : index === 2
-              ? 'high'
-              : 'medium',
-      }),
-    )
-}
-
-function coordinatorRiskScore(
-  coordinator: Coordinator,
-) {
-  return (
-    Math.max(
-      0,
-      100 -
-      coordinator.monthProjectionPercent,
-    ) *
-    10 +
-    coordinator.zeroStores * 120 +
-    Math.max(
-      0,
-      100 -
-      coordinator.dailyAchievementPercent,
-    )
-  )
-}
-
-function buildDiagnosis(
-  coordinators: Coordinator[],
-  priorities: RadarPriority[],
-) {
-  const risk =
-    [...coordinators].sort(
-      (a, b) =>
-        coordinatorRiskScore(b) -
-        coordinatorRiskScore(a),
-    )[0]
-
-  if (!risk) {
-    return {
-      status: 'attention' as const,
-
-      headline:
-        'Dados insuficientes:',
-
-      detail:
-        'não foi possível identificar a coordenação prioritária.',
-
-      generatedBy:
-        'deterministic' as const,
-    }
-  }
-
-  const related =
-    priorities
-      .filter(
-        (priority) =>
-          priority.coordinatorId ===
-          risk.id,
-      )
-      .slice(0, 2)
-
-  const recoverable =
-    related.reduce(
-      (sum, priority) =>
-        sum +
-        priority.recoverableGap,
-      0,
-    )
-
-  const action =
-    related.length > 0
-      ? ` Atuar primeiro em ${related
-        .map(
-          (priority) =>
-            priority.title,
-        )
-        .join(
-          ' e ',
-        )} representa ${formatCompactCurrency(
-          recoverable,
-        )} de gap recuperável.`
-      : ' Reforçar o acompanhamento das lojas abaixo da diária.'
-
-  return {
-    priorityCoordinatorId:
-      risk.id,
-
-    status: risk.status,
-
-    headline:
-      `${risk.name} exige maior atenção:`,
-
-    detail:
-      `projeção de ${formatPercent(
-        risk.monthProjectionPercent,
-        1,
-      )}, ${formatPercent(
-        risk.monthAchievementPercent,
-        1,
-      )} realizado no mês e ${risk.zeroStores} ${risk.zeroStores === 1
-        ? 'loja zerada'
-        : 'lojas zeradas'
-      }.${action}`,
-
-    generatedBy:
-      'deterministic' as const,
-  }
+    .map((priority, index) => ({
+      ...priority,
+      position: index + 1,
+    }))
 }
 
 export function adaptProductionApiToRadar(
@@ -1055,11 +930,10 @@ export function adaptProductionApiToRadar(
       recoverableTotal,
     },
 
-    diagnosis:
-      buildDiagnosis(
-        coordinators,
-        priorities,
-      ),
+    diagnosis: buildRadarDiagnosis(
+      coordinators,
+      priorities,
+    ),
 
     quality: {
       status:

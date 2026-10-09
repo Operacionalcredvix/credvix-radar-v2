@@ -23,24 +23,25 @@ const severityConfig: Record<
   {
     label: string
     className: string
+    valueClassName: string
   }
 > = {
   critical: {
     label: 'Crítica',
-    className:
-      'bg-[#c94730] text-white',
+    className: 'bg-[#c94730] text-white',
+    valueClassName: 'text-[#c94730]',
   },
 
   high: {
     label: 'Alta',
-    className:
-      'bg-[#fde5df] text-[#c34531]',
+    className: 'bg-[#fff0d8] text-[#a35d0a]',
+    valueClassName: 'text-[#bd6411]',
   },
 
   medium: {
     label: 'Média',
-    className:
-      'bg-[#fff0d5] text-[#a6620d]',
+    className: 'bg-[#fff7e7] text-[#92690e]',
+    valueClassName: 'text-[#99751e]',
   },
 }
 
@@ -154,15 +155,15 @@ function PriorityRow({
       </div>
 
       <strong
-        className="
+        className={`
           self-center
           whitespace-nowrap
           font-display
           text-[20px]
           font-bold
           tracking-[-0.035em]
-          text-[#171412]
-        "
+          ${severity.valueClassName}
+        `}
       >
         {formatCurrencyWithoutCents(
           priority.recoverableGap,

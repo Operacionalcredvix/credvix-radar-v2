@@ -9,6 +9,8 @@ import {
 
 import { formatDuration } from '../../../utils/formatDuration'
 import { formatPercent } from '../../../utils/formatPercent'
+import { getDailyTone } from '../radar.rules'
+import { RadarProgressBar } from './RadarProgressBar'
 
 type PaidTodayCardProps = {
   summary: RadarSummary
@@ -17,10 +19,17 @@ type PaidTodayCardProps = {
 export function PaidTodayCard({
   summary,
 }: PaidTodayCardProps) {
-  const progress = Math.min(
-    Math.max(summary.dailyAchievementPercent, 0),
-    100,
+  const dailyTone = getDailyTone(
+    summary.dailyAchievementPercent,
   )
+
+  const missingPercent =
+    summary.dailyGoal > 0
+      ? Math.max(
+        0,
+        100 - summary.dailyAchievementPercent,
+      )
+      : 0
 
   return (
     <section
@@ -35,23 +44,20 @@ export function PaidTodayCard({
         shadow-[0_16px_32px_rgba(32,24,18,0.14)]
       "
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between">
         <div>
           <h2
             className="
-              text-[17px]
-              font-semibold
+              font-display
+              text-[22px]
+              font-bold
               uppercase
-              tracking-[-0.01em]
-              text-[#beb8b3]
+              tracking-[-0.02em]
+              text-[#e6dfd9]
             "
           >
             Pago hoje
           </h2>
-
-          <p className="mt-[2px] text-[14px] text-[#a9a19c]">
-            Liquidação D0 confirmada
-          </p>
         </div>
 
         <div className="text-right">
@@ -95,17 +101,12 @@ export function PaidTodayCard({
 
       <div className="mt-[14px]">
         <div className="h-[16px] overflow-hidden rounded-full bg-[#443f3b]">
-          <div
-            className="
-              h-full
-              rounded-full
-              bg-gradient-to-r
-              from-[#d95508]
-              to-[#ff9800]
-            "
-            style={{
-              width: `${progress}%`,
-            }}
+          <RadarProgressBar
+            percent={summary.dailyAchievementPercent}
+            tone={dailyTone}
+            label="Progresso da meta diária"
+            size="lg"
+            dark
           />
         </div>
 
@@ -153,17 +154,12 @@ export function PaidTodayCard({
           </div>
 
           <div className="mt-[8px] h-[12px] overflow-hidden rounded-full bg-[#443f3b]">
-            <div
-              className="
-                h-full
-                rounded-full
-                bg-gradient-to-r
-                from-[#da5707]
-                to-[#ff9700]
-              "
-              style={{
-                width: `${progress}%`,
-              }}
+            <RadarProgressBar
+              percent={missingPercent}
+              tone={dailyTone}
+              label="Percentual faltante da meta diária"
+              size="sm"
+              dark
             />
           </div>
 

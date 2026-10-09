@@ -12,6 +12,8 @@ import type {
 
 import { formatCurrencyWithoutCents } from '../../../utils/formatCurrency'
 import { formatPercent } from '../../../utils/formatPercent'
+import { getDailyTone } from '../radar.rules'
+import { RadarProgressBar } from './RadarProgressBar'
 
 type CoordinatorRankingCardProps = {
   coordinators: Coordinator[]
@@ -98,6 +100,8 @@ function RankingPosition({
         justify-center
         rounded-full
         font-display
+        pl-[4px]
+        pt-[2px]
         text-[14px]
         font-bold
         ${isFirst
@@ -116,16 +120,11 @@ function CoordinatorRow({
 }: {
   coordinator: Coordinator
 }) {
-  const progress = Math.min(
-    Math.max(
-      coordinator.dailyAchievementPercent,
-      0,
-    ),
-    100,
+  const dailyTone = getDailyTone(
+    coordinator.dailyAchievementPercent,
   )
 
-  const isCritical =
-    coordinator.status === 'critical'
+  const isCritical = dailyTone === 'critical'
 
   return (
     <article
@@ -177,19 +176,12 @@ function CoordinatorRow({
         </strong>
       </div>
 
-      <div className="mt-[8px] [@media(max-height:950px)]:mt-[6px] h-[12px] overflow-hidden rounded-full bg-[#ebe7e4]">
-        <div
-          className={`
-            h-full
-            rounded-full
-            ${isCritical
-              ? 'bg-[#c8432d]'
-              : 'bg-gradient-to-r from-[#e56508] to-[#ff9800]'
-            }
-          `}
-          style={{
-            width: `${progress}%`,
-          }}
+      <div className="mt-[8px] [@media(max-height:950px)]:mt-[6px]">
+        <RadarProgressBar
+          percent={coordinator.dailyAchievementPercent}
+          tone={dailyTone}
+          label={`Progresso diário de ${coordinator.name}`}
+          size="sm"
         />
       </div>
 

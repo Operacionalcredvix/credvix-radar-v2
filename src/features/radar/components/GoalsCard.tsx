@@ -2,6 +2,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Target,
+  TriangleAlert,
 } from 'lucide-react'
 
 import type {
@@ -16,6 +17,7 @@ import {
 } from '../../../utils/formatCurrency'
 
 import { formatPercent } from '../../../utils/formatPercent'
+import { RadarProgressBar } from './RadarProgressBar'
 
 type GoalsCardProps = {
   summary: RadarSummary
@@ -34,7 +36,7 @@ const statusStyles = {
 
   critical: {
     wrapper: 'bg-[#fde9e5] text-[#bd432d]',
-    icon: ArrowDownRight,
+    icon: TriangleAlert,
   },
 } as const
 
@@ -70,21 +72,9 @@ function GoalStatusBadge({
   )
 }
 
-function clampProgress(value: number) {
-  return Math.min(Math.max(value, 0), 100)
-}
-
 export function GoalsCard({
   summary,
 }: GoalsCardProps) {
-  const soldProgress = clampProgress(
-    summary.soldTodayAchievementPercent,
-  )
-
-  const projectionProgress = clampProgress(
-    summary.monthProjectionPercent,
-  )
-
   return (
     <section
       className="
@@ -155,17 +145,11 @@ export function GoalsCard({
         </div>
 
         <div className="mt-[10px] h-[13px] overflow-hidden rounded-full bg-[#ebe7e4]">
-          <div
-            className="
-              h-full
-              rounded-full
-              bg-gradient-to-r
-              from-[#da5707]
-              to-[#ff8a00]
-            "
-            style={{
-              width: `${soldProgress}%`,
-            }}
+          <RadarProgressBar
+            percent={summary.soldTodayAchievementPercent}
+            tone={summary.soldTodayStatus.tone}
+            label="Vendido hoje em relação à meta diária"
+            size="md"
           />
         </div>
 
@@ -223,17 +207,11 @@ export function GoalsCard({
         </div>
 
         <div className="mt-[10px] h-[13px] overflow-hidden rounded-full bg-[#ebe7e4]">
-          <div
-            className="
-              h-full
-              rounded-full
-              bg-gradient-to-r
-              from-[#ff9200]
-              to-[#ffa000]
-            "
-            style={{
-              width: `${projectionProgress}%`,
-            }}
+          <RadarProgressBar
+            percent={summary.monthProjectionPercent}
+            tone={summary.monthProjectionStatus.tone}
+            label="Projeção do mês em relação à meta"
+            size="md"
           />
         </div>
 

@@ -34,25 +34,22 @@ export function RadarHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-7">
-        <div className="text-right">
-          <p className="text-[13px] font-normal text-[#817a75]">
+      <div className="flex items-center justify-end gap-[16px]">
+        <div className="flex flex-col items-end">
+          <p className="whitespace-nowrap text-[13px] font-normal text-[#817a75]">
             {formatLongDate(now)}
           </p>
 
-          <p className="mt-1 text-[13px] text-[#292522]">
-            Última carga{' '}
-            <strong className="font-bold text-[#111111]">
-              {formatTime(sourceUpdatedAt)}
-            </strong>
-          </p>
+          <span className="whitespace-nowrap font-display text-[18px] font-bold leading-none text-[#292522]">
+            Última carga:
+          </span>
         </div>
 
         <time
-          dateTime={now.toISOString()}
-          className="min-w-[108px] text-right font-display text-[46px] font-extrabold leading-none tracking-[-0.045em] text-[#0d0c0b]"
+          dateTime={sourceUpdatedAt}
+          className="whitespace-nowrap font-display text-[46px] font-extrabold leading-none tracking-[-0.045em] text-[#0d0c0b]"
         >
-          {formatTime(now)}
+          {formatTime(sourceUpdatedAt)}
         </time>
       </div>
     </header>
