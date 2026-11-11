@@ -10,7 +10,10 @@ import type {
   GoalTone,
 } from '../../../types/radar'
 
-import { formatCurrencyWithoutCents } from '../../../utils/formatCurrency'
+import {
+  formatCurrency,
+  formatCurrencyWithoutCents,
+} from '../../../utils/formatCurrency'
 import { formatPercent } from '../../../utils/formatPercent'
 import { getDailyTone } from '../radar.rules'
 import { RadarProgressBar } from './RadarProgressBar'
@@ -115,6 +118,45 @@ function RankingPosition({
   )
 }
 
+function getRecoveryToday(coordinator: Coordinator): number | null {
+  const {
+    monthGoal,
+    monthRealized,
+    monthProjectionPercent,
+    paidToday,
+  } = coordinator
+
+  if (
+    !Number.isFinite(monthGoal) ||
+    monthGoal <= 0 ||
+    !Number.isFinite(monthRealized) ||
+    monthRealized <= 0 ||
+    !Number.isFinite(paidToday) ||
+    paidToday < 0 ||
+    paidToday > monthRealized ||
+    !Number.isFinite(monthProjectionPercent) ||
+    monthProjectionPercent <= 0
+  ) {
+    return null
+  }
+
+  // A projeção mensal da fonte já considera os dias úteis e feriados.
+  // Realizado / projeção recupera a meta acumulada até o dia útil atual.
+  const accumulatedGoalToday =
+    monthRealized / (monthProjectionPercent / 100)
+
+  if (
+    !Number.isFinite(accumulatedGoalToday) ||
+    accumulatedGoalToday > monthGoal + 0.01
+  ) {
+    return null
+  }
+
+  const realizedUntilYesterday = monthRealized - paidToday
+
+  return Math.max(0, accumulatedGoalToday - realizedUntilYesterday)
+}
+
 function CoordinatorRow({
   coordinator,
 }: {
@@ -125,6 +167,7 @@ function CoordinatorRow({
   )
 
   const isCritical = dailyTone === 'critical'
+  const recoveryToday = getRecoveryToday(coordinator)
 
   return (
     <article
@@ -196,19 +239,30 @@ function CoordinatorRow({
           text-[12px]
         "
       >
-        <p className="whitespace-nowrap text-[#817a75]">
-          <strong className="font-medium text-[#302c29]">
+        <div className="min-w-0">
+          <p className="whitespace-nowrap text-[#817a75]">
+            <strong className="font-medium text-[#302c29]">
+              {formatCurrencyWithoutCents(
+                coordinator.paidToday,
+              )}
+            </strong>
+
+            {' / '}
+
             {formatCurrencyWithoutCents(
-              coordinator.paidToday,
+              coordinator.dailyGoal,
             )}
-          </strong>
+          </p>
 
-          {' / '}
-
-          {formatCurrencyWithoutCents(
-            coordinator.dailyGoal,
-          )}
-        </p>
+          <p className="mt-[2px] whitespace-nowrap text-[#817a75] [@media(max-height:800px)]:text-[11px]">
+            Recuperação:{' '}
+            <strong className="font-medium text-[#302c29]">
+              {recoveryToday === null
+                ? 'Indisponível'
+                : formatCurrency(recoveryToday)}
+            </strong>
+          </p>
+        </div>
 
         <p className="text-center text-[#817a75]">
           Lojas zeradas:{' '}
