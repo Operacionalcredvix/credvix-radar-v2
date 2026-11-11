@@ -75,6 +75,7 @@ export type RadarSummary = {
 }
 
 export type Coordinator = {
+  recoveryToday: number | null
   id: string
   name: string
 
