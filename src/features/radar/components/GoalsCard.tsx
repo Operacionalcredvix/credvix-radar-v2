@@ -219,8 +219,8 @@ export function GoalsCard({
             status={summary.monthProjectionStatus}
           />
 
-          <span className="ml-auto text-right text-[13px] text-[#8b837d]">
-            Recuperação necessária{' '}
+          <span className="ml-auto text-right text-[13px] font-bold text-[#302c29]">
+            Recuperação necessária:{' '}
             {formatCurrency(
               summary.monthProjectionPercent >= 100
                 ? 0
