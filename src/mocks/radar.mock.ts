@@ -64,6 +64,7 @@ export const radarMock: RadarPayload = {
       name: 'Daielly',
 
       rankingPosition: 3,
+      recoveryToday: null,
 
       status: 'critical',
 
@@ -97,6 +98,7 @@ export const radarMock: RadarPayload = {
       name: 'Maria Fernanda',
 
       rankingPosition: 2,
+      recoveryToday: null,
 
       status: 'attention',
 
@@ -130,6 +132,7 @@ export const radarMock: RadarPayload = {
       name: 'Marielen',
 
       rankingPosition: 1,
+      recoveryToday: null,
 
       status: 'controlled',
       statusReason:
