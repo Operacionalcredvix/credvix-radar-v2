@@ -13,7 +13,6 @@ import type {
 import {
   formatCompactCurrency,
   formatCurrency,
-  formatSignedCompactCurrency,
 } from '../../../utils/formatCurrency'
 
 import { formatPercent } from '../../../utils/formatPercent'
@@ -215,15 +214,17 @@ export function GoalsCard({
           />
         </div>
 
-        <div className="mt-[8px] flex items-center justify-between gap-4">
+        <div className="mt-[8px] flex flex-wrap items-center justify-between gap-x-4 gap-y-[4px]">
           <GoalStatusBadge
             status={summary.monthProjectionStatus}
           />
 
-          <span className="text-[13px] text-[#8b837d]">
-            Gap projetado{' '}
-            {formatSignedCompactCurrency(
-              summary.monthProjectionGap,
+          <span className="ml-auto text-right text-[13px] text-[#8b837d]">
+            Recuperação necessária{' '}
+            {formatCurrency(
+              summary.monthProjectionPercent >= 100
+                ? 0
+                : Math.max(0, -summary.monthProjectionGap),
             )}
           </span>
         </div>
