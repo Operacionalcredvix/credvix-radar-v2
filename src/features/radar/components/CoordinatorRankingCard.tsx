@@ -118,45 +118,6 @@ function RankingPosition({
   )
 }
 
-function getRecoveryToday(coordinator: Coordinator): number | null {
-  const {
-    monthGoal,
-    monthRealized,
-    monthProjectionPercent,
-    paidToday,
-  } = coordinator
-
-  if (
-    !Number.isFinite(monthGoal) ||
-    monthGoal <= 0 ||
-    !Number.isFinite(monthRealized) ||
-    monthRealized <= 0 ||
-    !Number.isFinite(paidToday) ||
-    paidToday < 0 ||
-    paidToday > monthRealized ||
-    !Number.isFinite(monthProjectionPercent) ||
-    monthProjectionPercent <= 0
-  ) {
-    return null
-  }
-
-  // A projeção mensal da fonte já considera os dias úteis e feriados.
-  // Realizado / projeção recupera a meta acumulada até o dia útil atual.
-  const accumulatedGoalToday =
-    monthRealized / (monthProjectionPercent / 100)
-
-  if (
-    !Number.isFinite(accumulatedGoalToday) ||
-    accumulatedGoalToday > monthGoal + 0.01
-  ) {
-    return null
-  }
-
-  const realizedUntilYesterday = monthRealized - paidToday
-
-  return Math.max(0, accumulatedGoalToday - realizedUntilYesterday)
-}
-
 function CoordinatorRow({
   coordinator,
 }: {
@@ -167,7 +128,7 @@ function CoordinatorRow({
   )
 
   const isCritical = dailyTone === 'critical'
-  const recoveryToday = getRecoveryToday(coordinator)
+  const recoveryToday = coordinator.recoveryToday
 
   return (
     <article
@@ -254,9 +215,9 @@ function CoordinatorRow({
             )}
           </p>
 
-          <p className="mt-[2px] whitespace-nowrap text-[#817a75] [@media(max-height:800px)]:text-[11px]">
+          <p className="mt-[2px] whitespace-nowrap font-bold text-[#302c29] [@media(max-height:800px)]:text-[11px]">
             Recuperação:{' '}
-            <strong className="font-medium text-[#302c29]">
+            <strong className="font-bold text-[#302c29]">
               {recoveryToday === null
                 ? 'Indisponível'
                 : formatCurrency(recoveryToday)}
