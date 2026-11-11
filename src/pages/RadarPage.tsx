@@ -90,9 +90,8 @@ export function RadarPage() {
         />
 
         <PriorityCard
-          priorities={data.priorities}
+          stores={data.stores}
           coordinators={data.coordinators}
-          panel={data.priorityPanel}
         />
       </div>
 
