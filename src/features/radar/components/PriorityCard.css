@@ -1,0 +1,39 @@
+/* A lista avança para os próximos itens em velocidade constante. */
+@keyframes credvixStoreScroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-33.333333%);
+  }
+}
+
+.credvix-store-loop {
+  animation-name: credvixStoreScroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .credvix-store-loop {
+    animation: none;
+    will-change: auto;
+  }
+}
+
+.credvix-store-viewport {
+  container-type: inline-size;
+}
+
+@container (max-width: 425px) {
+  .credvix-store-viewport .credvix-store-row {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .credvix-store-viewport .credvix-store-values {
+    grid-column: 2;
+    text-align: left;
+    padding-top: 2px;
+  }
+}
