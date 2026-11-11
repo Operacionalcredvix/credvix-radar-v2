@@ -15,13 +15,6 @@
   will-change: transform;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .credvix-store-loop {
-    animation: none;
-    will-change: auto;
-  }
-}
-
 .credvix-store-viewport {
   container-type: inline-size;
 }
