@@ -29,6 +29,7 @@ type ApiCoordinator = {
 
   monthGoal?: number
   monthRealized?: number
+  recoveryToday?: number | null
   monthAchievedPercent?: number
 
   monthPercent?: number
@@ -465,6 +466,9 @@ function buildCoordinators(
       const monthRealized =
         number(row.monthRealized)
 
+      const recoveryToday =
+        nullableNumber(row.recoveryToday)
+
       const monthAchievementPercent =
         percentage(
           monthRealized,
@@ -548,6 +552,7 @@ function buildCoordinators(
         monthGoal,
         monthRealized,
         monthAchievementPercent,
+        recoveryToday,
 
         monthProjectionPercent,
         monthProjectionAmount,
