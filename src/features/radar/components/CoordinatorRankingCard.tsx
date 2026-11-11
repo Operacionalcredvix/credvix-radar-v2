@@ -1,6 +1,7 @@
 import {
   ArrowDownRight,
   ArrowUpRight,
+  CheckCircle2,
   Crown,
   TriangleAlert,
 } from 'lucide-react'
@@ -118,6 +119,50 @@ function RankingPosition({
   )
 }
 
+function getAccumulatedSurplus(coordinator: Coordinator): number | null {
+  const { recoveryToday, paidToday } = coordinator
+
+  // A API já calcula a recuperação necessária até a meta acumulada de hoje.
+  if (
+    recoveryToday === null ||
+    !Number.isFinite(recoveryToday) ||
+    !Number.isFinite(paidToday) ||
+    paidToday + 0.005 < recoveryToday
+  ) {
+    return null
+  }
+
+  // Se havia atraso até ontem, o saldo equivale ao pago hoje menos a recuperação.
+  if (recoveryToday > 0.005) {
+    return Math.max(0, paidToday - recoveryToday)
+  }
+
+  // Quando já vinha adiantada de ontem, a recuperação é zero.
+  // A projeção da fonte permite recuperar a meta acumulada com o mesmo calendário útil.
+  const { monthRealized, monthProjectionPercent, monthGoal } = coordinator
+  if (
+    !Number.isFinite(monthRealized) ||
+    monthRealized <= 0 ||
+    !Number.isFinite(monthProjectionPercent) ||
+    monthProjectionPercent <= 0 ||
+    !Number.isFinite(monthGoal) ||
+    monthGoal <= 0
+  ) {
+    return null
+  }
+
+  const accumulatedGoalToday = monthRealized / (monthProjectionPercent / 100)
+  if (
+    !Number.isFinite(accumulatedGoalToday) ||
+    accumulatedGoalToday > monthGoal + 0.01 ||
+    monthRealized + 0.005 < accumulatedGoalToday
+  ) {
+    return null
+  }
+
+  return Math.max(0, monthRealized - accumulatedGoalToday)
+}
+
 function CoordinatorRow({
   coordinator,
 }: {
@@ -129,6 +174,14 @@ function CoordinatorRow({
 
   const isCritical = dailyTone === 'critical'
   const recoveryToday = coordinator.recoveryToday
+  const isOnTrack =
+    recoveryToday !== null &&
+    Number.isFinite(recoveryToday) &&
+    Number.isFinite(coordinator.paidToday) &&
+    coordinator.paidToday + 0.005 >= recoveryToday
+  const surplus = isOnTrack
+    ? getAccumulatedSurplus(coordinator)
+    : null
 
   return (
     <article
@@ -215,14 +268,44 @@ function CoordinatorRow({
             )}
           </p>
 
-          <p className="mt-[2px] whitespace-nowrap font-bold text-[#302c29] [@media(max-height:800px)]:text-[11px]">
-            Recuperação:{' '}
-            <strong className="font-bold text-[#302c29]">
-              {recoveryToday === null
-                ? 'Indisponível'
-                : formatCurrency(recoveryToday)}
-            </strong>
-          </p>
+          {isOnTrack ? (
+            <p
+              className="
+                mt-[2px]
+                flex
+                flex-wrap
+                items-center
+                gap-x-[6px]
+                font-bold
+                text-[#267350]
+                [@media(max-height:800px)]:text-[11px]
+              "
+            >
+              <CheckCircle2
+                size={12}
+                strokeWidth={2.4}
+                className="shrink-0"
+                aria-hidden="true"
+              />
+              <span className="whitespace-nowrap">
+                Em dia no acumulado
+              </span>
+              {surplus !== null && surplus >= 0.005 && (
+                <strong className="whitespace-nowrap font-bold">
+                  + {formatCurrency(surplus)}
+                </strong>
+              )}
+            </p>
+          ) : (
+            <p className="mt-[2px] whitespace-nowrap font-bold text-[#302c29] [@media(max-height:800px)]:text-[11px]">
+              Recuperação:{' '}
+              <strong className="font-bold text-[#302c29]">
+                {recoveryToday === null
+                  ? 'Indisponível'
+                  : formatCurrency(recoveryToday)}
+              </strong>
+            </p>
+          )}
         </div>
 
         <p className="text-center text-[#817a75]">
