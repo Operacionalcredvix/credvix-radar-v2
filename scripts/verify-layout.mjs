@@ -7,7 +7,8 @@ import { join } from 'node:path'
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const BASE = 'http://127.0.0.1:4173/credvix-radar-v2/'
-const SIZES = [[1366, 768], [1440, 900], [1920, 1080], [3840, 2160], [390, 844]]
+// 1666x923 reproduz a proporção da foto enviada da TV.
+const SIZES = [[1366, 768], [1440, 900], [1666, 923], [1920, 1080], [3840, 2160], [390, 844]]
 const version = JSON.parse(await readFile('dist/version.json', 'utf8'))
 const fixtureNames = [
   'Colatina Centro', 'Brasília Ceilândia Sul', 'Teixeira De Freitas Centro',
@@ -213,6 +214,7 @@ try {
     const loop = viewport?.querySelector('.credvix-store-loop')
     const copies = loop ? Array.from(loop.querySelectorAll(':scope > ol')) : []
     const firstRow = copies[0]?.querySelector('.credvix-store-row')
+    const name = firstRow?.children[1]
     const badge = firstRow?.querySelector('.credvix-store-projection')
     const values = firstRow?.querySelector('.credvix-store-values')
     const animation = loop ? getComputedStyle(loop) : null
@@ -221,7 +223,7 @@ try {
       docWidth: document.documentElement.scrollWidth,
       left: rect(left), right: rect(right), header: rect(header),
       footer: rect(footer), viewport: rect(viewport),
-      firstRow: rect(firstRow), badge: rect(badge), values: rect(values),
+      firstRow: rect(firstRow), name: rect(name), badge: rect(badge), values: rect(values),
       copyCount: copies.length, copyHeights: copies.map((item) => rect(item).height),
       animation: animation?.animationName,
       duration: animation?.animationDuration,
@@ -254,6 +256,31 @@ try {
       assert.ok(m.right.bottom <= height + 1, 'Ranking is taller than the screen')
     } else {
       assert.ok(m.right.top >= m.left.bottom - 2, 'Mobile ranking overlaps coordinators')
+    }
+    if (width >= 1280) {
+      // A correção anterior passava em overflow, mas tinha linhas de 110px
+      // porque o breakpoint de 650px separava os valores em uma terceira linha.
+      assert.ok(
+        m.firstRow.height <= (width >= 2600 ? 110 : 70),
+        'TV ranking rows became too tall: ' + width + 'px / ' +
+          Math.round(m.firstRow.height) + 'px'
+      )
+      assert.ok(
+        Math.abs(
+          (m.name.top + m.name.bottom) / 2 -
+          (m.values.top + m.values.bottom) / 2
+        ) < 10,
+        'TV amounts must stay beside the name instead of dropping to a new row'
+      )
+      assert.ok(
+        Math.abs(
+          (m.name.top + m.name.bottom) / 2 -
+          (m.badge.top + m.badge.bottom) / 2
+        ) < 10,
+        'TV projection badge must remain centered beside the name'
+      )
+      assert.ok(m.viewport.height / m.firstRow.height > 3.5,
+        'TV shows too few stores at a time')
     }
     assert.ok(m.values.right <= m.right.right + 1, 'Amounts clipped on the right')
     assert.ok(m.badge.right <= m.right.right + 1, 'Badge clipped on the right')
