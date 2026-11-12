@@ -6,6 +6,7 @@ import type {
 } from '../../../types/radar'
 
 import { formatCurrencyWithoutCents } from '../../../utils/formatCurrency'
+import { ProjectionBadge } from './ProjectionBadge'
 import './PriorityCard.css'
 
 type PriorityCardProps = {
@@ -27,7 +28,7 @@ function StoreRankingRow({
       className="
         credvix-store-row
         grid
-        grid-cols-[24px_minmax(0,1fr)_auto]
+        grid-cols-[24px_minmax(0,1fr)_auto_auto]
         items-center
         gap-[10px]
         border-b
@@ -55,11 +56,18 @@ function StoreRankingRow({
         </p>
       </div>
 
+      <div className="credvix-store-projection min-w-0 justify-self-center">
+        <ProjectionBadge
+          percent={store.monthProjectionPercent}
+          tone={store.projectionTone}
+        />
+      </div>
+
       <div className="credvix-store-values shrink-0 whitespace-nowrap text-right tabular-nums">
         <p className="text-[12px] text-[#817a75]">
-          Vendido hoje:{' '}
+          Vendido/Meta:{' '}
           <strong className="font-bold text-[#171412]">
-            {formatCurrencyWithoutCents(store.soldToday)}
+            {formatCurrencyWithoutCents(store.soldToday)} / {formatCurrencyWithoutCents(store.dailyGoal)}
           </strong>
         </p>
 
@@ -68,12 +76,14 @@ function StoreRankingRow({
           <strong
             className={
               'font-bold ' +
-              (store.dailyGap > 0
-                ? 'text-[#c94730]'
-                : 'text-[#267350]')
+              (store.recoveryToday === null
+                ? 'text-[#817a75]'
+                : store.recoveryToday > 0
+                  ? 'text-[#c94730]'
+                  : 'text-[#267350]')
             }
           >
-            {formatCurrencyWithoutCents(store.dailyGap)}
+            {store.recoveryToday === null ? 'Indisponível' : formatCurrencyWithoutCents(store.recoveryToday)}
           </strong>
         </p>
       </div>
