@@ -52,6 +52,17 @@ jobs:
             console.log("Published build ID: " + version.buildId);
           '
 
+      - name: Verify ranking layouts and published-version refresh
+        run: node scripts/verify-layout.mjs
+
+      - name: Upload viewport screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: radar-viewport-checks
+          path: layout-screenshots/*.png
+          if-no-files-found: ignore
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
