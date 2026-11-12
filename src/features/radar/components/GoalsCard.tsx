@@ -113,16 +113,17 @@ export function GoalsCard({
 
       <div className="mt-[28px] [@media(max-height:950px)]:mt-[20px]">
         <div className="flex items-end justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <h3
               className="
                 font-display
                 text-[18px]
                 font-semibold
+                leading-tight
                 tracking-[-0.02em]
               "
             >
-              Vendido hoje
+              Vendido hoje (Pago + Esteira)
             </h3>
 
             <p className="mt-[2px] text-[13px] text-[#8b837d]">
