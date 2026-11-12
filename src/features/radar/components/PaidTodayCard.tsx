@@ -174,7 +174,7 @@ export function PaidTodayCard({
             </p>
 
             <p className="text-[#aaa29c]">
-              Precisamos vender{' '}
+              Precisamos digitar{' '}
               <strong className="font-semibold text-white">
                 {formatCompactCurrency(
                   summary.newSalesNeeded,
