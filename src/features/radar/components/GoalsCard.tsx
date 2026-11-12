@@ -199,16 +199,15 @@ export function GoalsCard({
               tracking-[-0.035em]
             "
           >
-            {formatPercent(
-              summary.monthProjectionPercent,
-              0,
-            )}
+            {summary.monthProjectionPercent === null
+              ? '—'
+              : formatPercent(summary.monthProjectionPercent, 0)}
           </strong>
         </div>
 
         <div className="mt-[10px] h-[13px] overflow-hidden rounded-full bg-[#ebe7e4]">
           <RadarProgressBar
-            percent={summary.monthProjectionPercent}
+            percent={summary.monthProjectionPercent ?? 0}
             tone={summary.monthProjectionStatus.tone}
             label="Projeção do mês em relação à meta"
             size="md"
@@ -222,11 +221,11 @@ export function GoalsCard({
 
           <span className="ml-auto text-right text-[13px] font-bold text-[#302c29]">
             Recuperação necessária:{' '}
-            {formatCurrency(
-              summary.monthProjectionPercent >= 100
-                ? 0
-                : Math.max(0, -summary.monthProjectionGap),
-            )}
+            {summary.monthProjectionGap === null || summary.monthProjectionPercent === null
+              ? 'Indisponível'
+              : formatCurrency(summary.monthProjectionPercent >= 100
+                  ? 0
+                  : Math.max(0, -summary.monthProjectionGap))}
           </span>
         </div>
       </div>
