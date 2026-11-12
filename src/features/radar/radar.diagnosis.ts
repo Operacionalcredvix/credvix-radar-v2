@@ -35,13 +35,13 @@ export function buildRadarDiagnosis(
   if (
     coordinators.length !== 3 ||
     coordinators.some(
-      (item) => item.monthGoal <= 0 || item.dailyGoal <= 0,
+      (item) => item.monthGoal <= 0 || item.dailyGoal <= 0 || item.monthProjectionPercent === null || item.monthProjectionGap === null,
     )
   ) {
     return {
       status: 'attention',
       headline: 'Dados incompletos:',
-      detail: 'diagnóstico suspenso até validar as três coordenações.',
+      detail: 'diagnóstico mensal suspenso até validar as três coordenações e o fechamento anterior.',
       generatedBy: 'deterministic',
     }
   }
@@ -58,7 +58,7 @@ export function buildRadarDiagnosis(
 
   const worstProjection = coordinators.reduce(
     (worst, item) =>
-      item.monthProjectionPercent < worst.monthProjectionPercent
+      (item.monthProjectionPercent ?? Infinity) < (worst.monthProjectionPercent ?? Infinity)
         ? item
         : worst,
   )
@@ -111,10 +111,10 @@ export function buildRadarDiagnosis(
       worstProjection,
       `Risco mensal em ${worstProjection.name}:`,
       `projeção de ${formatPercent(
-        worstProjection.monthProjectionPercent,
+        worstProjection.monthProjectionPercent ?? 0,
         1,
       )} e déficit projetado de ${formatCompactCurrency(
-        Math.max(0, -worstProjection.monthProjectionGap),
+        Math.max(0, -(worstProjection.monthProjectionGap ?? 0)),
       )}. ${actionFor(worstProjection.id)}`,
     )
   }
@@ -144,7 +144,7 @@ export function buildRadarDiagnosis(
       worstProjection,
       `Projeção em atenção — ${worstProjection.name}:`,
       `${formatPercent(
-        worstProjection.monthProjectionPercent,
+        worstProjection.monthProjectionPercent ?? 0,
         1,
       )} projetado para o mês. ${actionFor(worstProjection.id)}`,
     )
