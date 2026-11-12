@@ -61,9 +61,9 @@ export type RadarSummary = {
   monthRealized: number
   monthAchievementPercent: number
 
-  monthProjectionPercent: number
-  monthProjectionAmount: number
-  monthProjectionGap: number
+  monthProjectionPercent: number | null
+  monthProjectionAmount: number | null
+  monthProjectionGap: number | null
 
   totalStores: number
 
@@ -76,6 +76,8 @@ export type RadarSummary = {
 
 export type Coordinator = {
   recoveryToday: number | null
+  monthRealizedClosed: number | null
+  cumulativeTargetToday: number | null
   id: string
   name: string
 
@@ -84,7 +86,7 @@ export type Coordinator = {
   status: RadarStatus
   statusReason: string
 
-  projectionTone: GoalTone
+  projectionTone: GoalTone | null
 
   paidToday: number
   soldToday: number
@@ -118,6 +120,13 @@ export type Store = {
   dailyGoal: number
   dailyGap: number
   dailyAchievementPercent: number
+  monthProjectionPercent: number | null
+  monthProjectionAmount: number | null
+  monthProjectionGap: number | null
+  projectionTone: GoalTone | null
+  recoveryToday: number | null
+  monthRealizedClosed: number | null
+  cumulativeTargetToday: number | null
 
   isZero: boolean
 }
