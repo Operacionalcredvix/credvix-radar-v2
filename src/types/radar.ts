@@ -100,9 +100,9 @@ export type Coordinator = {
   monthRealized: number
   monthAchievementPercent: number
 
-  monthProjectionPercent: number
-  monthProjectionAmount: number
-  monthProjectionGap: number
+  monthProjectionPercent: number | null
+  monthProjectionAmount: number | null
+  monthProjectionGap: number | null
 
   zeroStores: number
   storeCount: number
