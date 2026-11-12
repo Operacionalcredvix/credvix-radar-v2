@@ -226,6 +226,9 @@ try {
       const b = element.getBoundingClientRect()
       return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, width: b.width, height: b.height }
     }
+    const diagnosisFooter = document.querySelector('.diagnosis-footer')
+    const diagnosisEntries = [...document.querySelectorAll('.diagnosis-footer-slide')]
+    const activeDiagnoses = diagnosisEntries.filter((entry) => entry.dataset.active === 'true')
     const cards = document.querySelectorAll('.radar-screen-bottom > section')
     const left = cards[0]
     const right = cards[1]
@@ -243,6 +246,14 @@ try {
       width: innerWidth, height: innerHeight,
       docWidth: document.documentElement.scrollWidth,
       left: rect(left), right: rect(right), header: rect(header),
+      diagnosisFooter: rect(diagnosisFooter),
+      diagnosisSlot: diagnosisFooter?.dataset.diagnosisSlot,
+      diagnosisEntries: diagnosisEntries.length,
+      diagnosisActiveEntries: activeDiagnoses.length,
+      diagnosisText: activeDiagnoses[0]?.innerText,
+      diagnosisActiveOpacity: activeDiagnoses[0]
+        ? getComputedStyle(activeDiagnoses[0]).opacity
+        : null,
       footer: rect(footer), viewport: rect(viewport),
       firstRow: rect(firstRow), name: rect(name), badge: rect(badge), values: rect(values),
       copyCount: copies.length, copyHeights: copies.map((item) => rect(item).height),
@@ -261,6 +272,12 @@ try {
     const m = await evaluate(measure)
     assert.equal(m.width, width, 'Incorrect viewport width')
     assert.ok(m.right && m.left && m.header && m.footer && m.viewport, 'Missing ranking cards')
+    assert.ok(m.diagnosisFooter, 'Missing rotating diagnosis footer')
+    assert.equal(m.diagnosisSlot, 'daielly', 'Rotation must start with Daielly')
+    assert.equal(m.diagnosisEntries, 4, 'Rotation must display four logical slots')
+    assert.equal(m.diagnosisActiveEntries, 1, 'Exactly one diagnosis must be active')
+    assert.ok(m.diagnosisText.includes('Daielly:'), 'Coordinator identity missing')
+    assert.ok(m.diagnosisActiveOpacity === '1', 'Initial diagnosis is not visible')
     assert.ok(m.docWidth <= width + 2, 'Horizontal page overflow: ' + width + ' => ' + m.docWidth)
     assert.ok(m.right.left >= -1 && m.right.right <= width + 2, 'Ranking escapes horizontal viewport')
     assert.ok(m.header.bottom <= m.viewport.top + 2, 'Header overlaps scrolling list')
@@ -275,6 +292,12 @@ try {
       assert.ok(Math.abs(m.left.top - m.right.top) < 2, 'Cards have different top edges')
       assert.ok(Math.abs(m.left.bottom - m.right.bottom) < 2, 'Cards have different bottom edges')
       assert.ok(m.right.bottom <= height + 1, 'Ranking is taller than the screen')
+      assert.ok(m.diagnosisFooter.top >= m.right.bottom,
+        'Diagnostic footer overlaps ranking cards')
+      assert.ok(m.diagnosisFooter.bottom <= height + 1,
+        'Diagnostic footer extends past the viewport')
+      assert.ok(Math.abs(m.diagnosisFooter.height - (height <= 950 ? 46 : 50)) < 1,
+        'TV diagnostic height changed')
     } else {
       assert.ok(m.right.top >= m.left.bottom - 2, 'Mobile ranking overlaps coordinators')
     }
