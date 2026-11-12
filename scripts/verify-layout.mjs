@@ -116,7 +116,8 @@ const chromeBin = [
 ].find((path) => path && existsSync(path))
 assert.ok(chromeBin, 'Chrome / Chromium is required for viewport tests')
 
-const profile = join(tmpdir(), 'credvix-layout-' + process.pid)
+const profileBase = join(tmpdir(), 'credvix-layout-' + process.pid)
+let profile = profileBase
 const screenshotsDir = 'layout-screenshots'
 let preview
 let browser
@@ -129,19 +130,39 @@ try {
     return response.ok
   })
 
-  browser = spawn(chromeBin, [
-    '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
-    '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
-    '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0',
-    '--user-data-dir=' + profile, 'about:blank',
-  ], { stdio: 'ignore' })
-
   let debugPort
-  await waitFor(async () => {
-    const ports = (await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).split('\n')
-    debugPort = Number(ports[0])
-    return debugPort > 0
-  })
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    profile = profileBase + '-' + attempt
+    let startupError = ''
+    browser = spawn(chromeBin, [
+      '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
+      '--disable-background-networking', '--disable-extensions',
+      '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
+      '--no-first-run', '--no-default-browser-check', '--remote-debugging-port=0',
+      '--user-data-dir=' + profile, 'about:blank',
+    ], { stdio: ['ignore', 'ignore', 'pipe'] })
+    browser.stderr?.on('data', (chunk) => {
+      startupError = (startupError + String(chunk)).slice(-1500)
+    })
+
+    try {
+      await waitFor(async () => {
+        const ports = (await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).split('\n')
+        debugPort = Number(ports[0])
+        return debugPort > 0
+      }, 25000)
+      break
+    } catch (error) {
+      browser.kill('SIGTERM')
+      await rm(profile, { recursive: true, force: true }).catch(() => {})
+      if (attempt === 2) {
+        throw new Error('Chrome failed to start twice: ' +
+          String(error) + ' / ' + startupError)
+      }
+      console.warn('Chrome startup retry after transient runner failure')
+      await sleep(750)
+    }
+  }
   const targets = await fetch('http://127.0.0.1:' + debugPort + '/json/list').then((response) => response.json())
   const target = targets.find((item) => item.type === 'page')
   assert.ok(target, 'Chrome did not create a page')
