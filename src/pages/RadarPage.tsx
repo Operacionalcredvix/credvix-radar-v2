@@ -5,6 +5,7 @@ import { GoalsCard } from '../features/radar/components/GoalsCard'
 import { CoordinatorRankingCard } from '../features/radar/components/CoordinatorRankingCard'
 import { PriorityCard } from '../features/radar/components/PriorityCard'
 import { DiagnosisFooter } from '../features/radar/components/DiagnosisFooter'
+import { buildRotatingDiagnoses } from '../features/radar/radar.rotating-diagnosis'
 
 export function RadarPage() {
   const {
@@ -101,7 +102,7 @@ export function RadarPage() {
       </div>
 
       <DiagnosisFooter
-        diagnosis={data.diagnosis}
+        diagnoses={buildRotatingDiagnoses(data)}
       />
     </main>
   )
