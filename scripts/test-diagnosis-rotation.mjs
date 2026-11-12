@@ -24,8 +24,13 @@ try {
   // A cor da projeção deve considerar o percentual bruto, sem arredondar.
   const projectionCases = [
     { percent: 69.99, tone: 'critical', status: 'critical' },
-    { percent: 70, tone: 'attention', status: 'attention' },
+    { percent: 70, tone: 'critical', status: 'critical' },
+    { percent: 79.99, tone: 'critical', status: 'critical' },
+    { percent: 79.9999, tone: 'critical', status: 'critical' },
+    { percent: 80, tone: 'attention', status: 'attention' },
+    { percent: 80.0001, tone: 'attention', status: 'attention' },
     { percent: 99.99, tone: 'attention', status: 'attention' },
+    { percent: 99.9999, tone: 'attention', status: 'attention' },
     { percent: 100, tone: 'attention', status: 'attention' },
     { percent: 100.01, tone: 'positive', status: 'controlled' },
   ]
@@ -55,6 +60,13 @@ try {
 
     const adapted = adaptProductionApiToRadar(api)
     assert.equal(adapted.summary.monthProjectionStatus.tone, tone, `General at ${percent}%`)
+    const expectedLabel = tone === 'critical'
+      ? 'Projeção crítica'
+      : tone === 'attention'
+        ? 'Projeção em atenção'
+        : 'Projeção saudável'
+    assert.equal(adapted.summary.monthProjectionStatus.label, expectedLabel)
+    assert.equal(adapted.diagnosis.status, status, `Diagnostic status at ${percent}%`)
     assert.equal(adapted.coordinators.length, 3)
     assert.equal(adapted.stores.length, 3)
     for (const item of adapted.coordinators) {
@@ -71,7 +83,7 @@ try {
       ? /Acompanhar as conversões nas três coordenações/
       : /Priorizar/)
   }
-  console.log('Projection thresholds: 69.99, 70, 99.99, 100, 100.01 across general, coordinators, stores and diagnosis OK')
+  console.log('Projection thresholds: 69.99, 70, 79.99, 79.9999, 80, 80.0001, 99.99, 99.9999, 100, 100.01 across general, coordinators, stores and diagnosis OK')
 
   const coordinator = (id, name, projection, gap, zeroStores, status) => ({
     id, name, monthGoal: 500_000, monthProjectionPercent: projection,

@@ -6,7 +6,7 @@ import type {
 
 export const RADAR_THRESHOLDS = {
   projection: {
-    dangerBelow: 70,
+    dangerBelow: 80,
     successAbove: 100,
   },
 
