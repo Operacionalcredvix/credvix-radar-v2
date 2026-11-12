@@ -1,89 +1,19 @@
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  CheckCircle2,
-  Crown,
-  TriangleAlert,
-} from 'lucide-react'
+import { CheckCircle2, Crown } from 'lucide-react'
 
-import type {
-  Coordinator,
-  GoalTone,
-} from '../../../types/radar'
+import type { Coordinator } from '../../../types/radar'
 
 import {
   formatCurrency,
   formatCurrencyWithoutCents,
 } from '../../../utils/formatCurrency'
 import { formatPercent } from '../../../utils/formatPercent'
+import { ProjectionBadge } from './ProjectionBadge'
 import { getDailyTone } from '../radar.rules'
 import { RadarProgressBar } from './RadarProgressBar'
 
 type CoordinatorRankingCardProps = {
   coordinators: Coordinator[]
   totalStores: number
-}
-
-const projectionStyles: Record<
-  GoalTone,
-  {
-    wrapper: string
-    icon: typeof ArrowUpRight
-  }
-> = {
-  positive: {
-    wrapper: 'bg-[#e7f4ed] text-[#267350]',
-    icon: ArrowUpRight,
-  },
-
-  attention: {
-    wrapper: 'bg-[#fff1da] text-[#96550d]',
-    icon: ArrowDownRight,
-  },
-
-  critical: {
-    wrapper: 'bg-[#fde9e5] text-[#c04431]',
-    icon: TriangleAlert,
-  },
-}
-
-function ProjectionBadge({
-  coordinator,
-}: {
-  coordinator: Coordinator
-}) {
-  const config =
-    projectionStyles[coordinator.projectionTone]
-
-  const Icon = config.icon
-
-  return (
-    <span
-      className={`
-        inline-flex
-        items-center
-        gap-[5px]
-        whitespace-nowrap
-        rounded-full
-        px-[9px]
-        py-[4px]
-        text-[11px]
-        font-semibold
-        ${config.wrapper}
-      `}
-    >
-      <Icon
-        size={13}
-        strokeWidth={2.3}
-      />
-
-      Projeção{' '}
-      {formatPercent(
-        coordinator.monthProjectionPercent,
-        0,
-      )}
-    </span>
-  )
 }
 
 function RankingPosition({
@@ -120,47 +50,15 @@ function RankingPosition({
 }
 
 function getAccumulatedSurplus(coordinator: Coordinator): number | null {
-  const { recoveryToday, paidToday } = coordinator
-
-  // A API já calcula a recuperação necessária até a meta acumulada de hoje.
+  const { recoveryToday, paidToday, monthRealizedClosed, cumulativeTargetToday } = coordinator
   if (
-    recoveryToday === null ||
-    !Number.isFinite(recoveryToday) ||
-    !Number.isFinite(paidToday) ||
-    paidToday + 0.005 < recoveryToday
-  ) {
-    return null
-  }
+    recoveryToday === null || monthRealizedClosed === null ||
+    cumulativeTargetToday === null ||
+    !Number.isFinite(paidToday)
+  ) return null
 
-  // Se havia atraso até ontem, o saldo equivale ao pago hoje menos a recuperação.
-  if (recoveryToday > 0.005) {
-    return Math.max(0, paidToday - recoveryToday)
-  }
-
-  // Quando já vinha adiantada de ontem, a recuperação é zero.
-  // A projeção da fonte permite recuperar a meta acumulada com o mesmo calendário útil.
-  const { monthRealized, monthProjectionPercent, monthGoal } = coordinator
-  if (
-    !Number.isFinite(monthRealized) ||
-    monthRealized <= 0 ||
-    !Number.isFinite(monthProjectionPercent) ||
-    monthProjectionPercent <= 0 ||
-    !Number.isFinite(monthGoal) ||
-    monthGoal <= 0
-  ) {
-    return null
-  }
-
-  const accumulatedGoalToday = monthRealized / (monthProjectionPercent / 100)
-  if (
-    !Number.isFinite(accumulatedGoalToday) ||
-    accumulatedGoalToday > monthGoal + 0.01 ||
-    monthRealized + 0.005 < accumulatedGoalToday
-  ) {
-    return null
-  }
-
-  return Math.max(0, monthRealized - accumulatedGoalToday)
+  const surplus = monthRealizedClosed + paidToday - cumulativeTargetToday
+  return Number.isFinite(surplus) ? Math.max(0, surplus) : null
 }
 
 function CoordinatorRow({
@@ -317,7 +215,8 @@ function CoordinatorRow({
         </p>
 
         <ProjectionBadge
-          coordinator={coordinator}
+          percent={coordinator.monthProjectionPercent}
+          tone={coordinator.projectionTone}
         />
       </div>
     </article>
