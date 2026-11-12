@@ -56,6 +56,14 @@ type ApiStore = {
   paidToday?: number
 
   conversionPending?: number
+  monthGoal?: number
+  monthRealized?: number
+  monthProjectionPercent?: number | null
+  monthProjectionAmount?: number | null
+  monthProjectionGap?: number | null
+  recoveryToday?: number | null
+  monthRealizedClosed?: number | null
+  cumulativeTargetToday?: number | null
 }
 
 export type ProductionApiPayload = {
@@ -72,6 +80,7 @@ export type ProductionApiPayload = {
 
   missingData?: string[]
   warning?: string
+  snapshot?: { ok: boolean; operationalDate?: string; closedThrough?: string; reason?: string }
 }
 
 const COORDINATOR_NAMES = [
@@ -120,6 +129,7 @@ function number(value: unknown) {
 function nullableNumber(
   value: unknown,
 ): number | null {
+  if (value === null || value === undefined || value === '') return null
   const parsed = Number(value)
 
   return Number.isFinite(parsed)
@@ -139,7 +149,7 @@ function percentage(
 }
 
 function coordinatorStatus(
-  projection: number,
+  projection: number | null,
   zeroStores: number,
   dailyPercent: number,
 ): RadarStatus {
@@ -169,7 +179,7 @@ function coordinatorStatus(
 }
 
 function coordinatorReason(
-  projection: number,
+  projection: number | null,
   zeroStores: number,
   dailyPercent: number,
 ) {
@@ -178,6 +188,8 @@ function coordinatorReason(
 
   const dailyTone =
     getDailyTone(dailyPercent)
+
+  if (projection === null) return 'Projeção mensal indisponível'
 
   if (projectionTone === 'critical') {
     return 'Projeção mensal crítica'
@@ -235,8 +247,11 @@ function soldTodayIndicator(
 }
 
 function projectionIndicator(
-  percent: number,
+  percent: number | null,
 ): GoalIndicator {
+  if (percent === null) {
+    return { label: 'Projeção indisponível', tone: 'attention' }
+  }
   const tone =
     getProjectionTone(percent)
 
@@ -367,6 +382,13 @@ function buildStores(
           dailyGoal - paidToday,
         )
 
+      const projectionPercent = nullableNumber(store.monthProjectionPercent)
+      const projectionAmount = nullableNumber(store.monthProjectionAmount)
+      const projectionGap = nullableNumber(store.monthProjectionGap)
+      const recoveryToday = nullableNumber(store.recoveryToday)
+      const monthRealizedClosed = nullableNumber(store.monthRealizedClosed)
+      const cumulativeTargetToday = nullableNumber(store.cumulativeTargetToday)
+
       const coordinatorId =
         toId(store.responsible)
 
@@ -387,6 +409,13 @@ function buildStores(
 
         dailyGoal,
         dailyGap,
+        monthProjectionPercent: projectionPercent,
+        monthProjectionAmount: projectionAmount,
+        monthProjectionGap: projectionGap,
+        projectionTone: projectionPercent === null ? null : getProjectionTone(projectionPercent),
+        recoveryToday,
+        monthRealizedClosed,
+        cumulativeTargetToday,
 
         dailyAchievementPercent:
           percentage(
@@ -468,6 +497,8 @@ function buildCoordinators(
 
       const recoveryToday =
         nullableNumber(row.recoveryToday)
+      const monthRealizedClosed = nullableNumber(row.monthRealizedClosed)
+      const cumulativeTargetToday = nullableNumber(row.cumulativeTargetToday)
 
       const monthAchievementPercent =
         percentage(
@@ -476,29 +507,20 @@ function buildCoordinators(
         )
 
       const monthProjectionPercent =
-        number(
-          row.monthProjectionPercent ??
-          row.monthPercent,
+        nullableNumber(
+          row.monthProjectionPercent ?? row.monthPercent,
         )
 
       const monthProjectionAmount =
-        nullableNumber(
-          row.monthProjectionAmount,
-        ) ??
-        (
-          monthGoal *
-          monthProjectionPercent
-        ) /
-        100
+        nullableNumber(row.monthProjectionAmount) ??
+        (monthProjectionPercent === null ? null : (
+          monthGoal * monthProjectionPercent
+        ) / 100)
 
       const monthProjectionGap =
-        nullableNumber(
-          row.monthProjectionGap,
-        ) ??
-        (
-          monthProjectionAmount -
-          monthGoal
-        )
+        nullableNumber(row.monthProjectionGap) ??
+        (monthProjectionAmount === null ? null :
+          monthProjectionAmount - monthGoal)
 
       const zeroStores =
         coordinatorStores.length
@@ -537,9 +559,7 @@ function buildCoordinators(
           ),
 
         projectionTone:
-          getProjectionTone(
-            monthProjectionPercent,
-          ),
+          monthProjectionPercent === null ? null : getProjectionTone(monthProjectionPercent),
 
         paidToday,
         soldToday,
@@ -553,6 +573,8 @@ function buildCoordinators(
         monthRealized,
         monthAchievementPercent,
         recoveryToday,
+        monthRealizedClosed,
+        cumulativeTargetToday,
 
         monthProjectionPercent,
         monthProjectionAmount,
@@ -781,23 +803,23 @@ export function adaptProductionApiToRadar(
       monthGoal,
     )
 
-  const monthProjectionAmount =
-    coordinators.reduce(
-      (sum, item) =>
-        sum +
-        item.monthProjectionAmount,
-      0,
-    )
+  const hasCompleteProjection =
+    coordinators.length === COORDINATOR_NAMES.length &&
+    monthGoal > 0 &&
+    coordinators.every((item) => item.monthProjectionAmount !== null)
 
-  const monthProjectionPercent =
-    percentage(
-      monthProjectionAmount,
-      monthGoal,
-    )
+  const monthProjectionAmount = hasCompleteProjection
+    ? coordinators.reduce(
+        (sum, item) => sum + (item.monthProjectionAmount ?? 0),
+        0,
+      )
+    : null
 
-  const monthProjectionGap =
-    monthProjectionAmount -
-    monthGoal
+  const monthProjectionPercent = monthProjectionAmount === null
+    ? null : percentage(monthProjectionAmount, monthGoal)
+
+  const monthProjectionGap = monthProjectionAmount === null
+    ? null : monthProjectionAmount - monthGoal
 
   const priorities =
     buildPriorities(stores)
@@ -836,6 +858,9 @@ export function adaptProductionApiToRadar(
       (name) =>
         `COORDENADORA ${name}`,
     ),
+    ...(api.snapshot?.ok ? [] : ['PROJEÇÃO ESTÁTICA']),
+    ...stores.filter((store) => store.monthProjectionPercent === null)
+      .map((store) => `PROJEÇÃO LOJA ${store.name}`),
   ]
 
   const warnings = [
