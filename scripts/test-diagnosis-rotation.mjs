@@ -10,13 +10,68 @@ try {
   const [{ buildRotatingDiagnoses }, {
     diagnosisIndexAt, startDiagnosisRotation, DIAGNOSIS_DURATION_MS,
     DIAGNOSIS_CLOCK_POLL_MS,
-  }] = await Promise.all([
+  }, { getProjectionTone }, { adaptProductionApiToRadar }] = await Promise.all([
     server.ssrLoadModule('/src/features/radar/radar.rotating-diagnosis.ts'),
     server.ssrLoadModule('/src/features/radar/diagnosis.rotation.ts'),
+    server.ssrLoadModule('/src/features/radar/radar.rules.ts'),
+    server.ssrLoadModule('/src/services/radar.adapter.ts'),
   ])
 
   assert.equal(DIAGNOSIS_DURATION_MS, 20_000)
   assert.equal(DIAGNOSIS_CLOCK_POLL_MS, 1_000)
+
+
+  // A cor da projeção deve considerar o percentual bruto, sem arredondar.
+  const projectionCases = [
+    { percent: 69.99, tone: 'critical', status: 'critical' },
+    { percent: 70, tone: 'attention', status: 'attention' },
+    { percent: 99.99, tone: 'attention', status: 'attention' },
+    { percent: 100, tone: 'attention', status: 'attention' },
+    { percent: 100.01, tone: 'positive', status: 'controlled' },
+  ]
+
+  for (const { percent, tone, status } of projectionCases) {
+    assert.equal(getProjectionTone(percent), tone, `Raw projection at ${percent}%`)
+
+    const coordinatorNames = ['DAIELLY', 'MARIELEN', 'MARIA FERNANDA']
+    const monthProjectionAmount = percent * 10
+    const api = {
+      ok: true,
+      date: '12/11/2026',
+      updatedAt: '18h00',
+      snapshot: { ok: true },
+      responsiblePerformance: coordinatorNames.map((name) => ({
+        name, paidToday: 100, soldToday: 100, dailyGoal: 100,
+        monthGoal: 1_000, monthRealized: 100, monthProjectionPercent: percent,
+        monthProjectionAmount, monthProjectionGap: monthProjectionAmount - 1_000,
+      })),
+      operationalStores: coordinatorNames.map((name) => ({
+        name: `Loja ${name}`, responsible: name,
+        paidToday: 100, soldToday: 100, dailyGoal: 100,
+        monthProjectionPercent: percent, monthProjectionAmount,
+        monthProjectionGap: monthProjectionAmount - 1_000,
+      })),
+    }
+
+    const adapted = adaptProductionApiToRadar(api)
+    assert.equal(adapted.summary.monthProjectionStatus.tone, tone, `General at ${percent}%`)
+    assert.equal(adapted.coordinators.length, 3)
+    assert.equal(adapted.stores.length, 3)
+    for (const item of adapted.coordinators) {
+      assert.equal(item.projectionTone, tone, `Coordinator ${item.name} at ${percent}%`)
+      assert.equal(item.status, status)
+    }
+    for (const item of adapted.stores) {
+      assert.equal(item.projectionTone, tone, `Store ${item.name} at ${percent}%`)
+    }
+
+    const general = buildRotatingDiagnoses(adapted)[3].diagnosis
+    assert.equal(general.status, status, `General diagnosis at ${percent}%`)
+    assert.match(general.detail, percent > 100
+      ? /Acompanhar as conversões nas três coordenações/
+      : /Priorizar/)
+  }
+  console.log('Projection thresholds: 69.99, 70, 99.99, 100, 100.01 across general, coordinators, stores and diagnosis OK')
 
   const coordinator = (id, name, projection, gap, zeroStores, status) => ({
     id, name, monthGoal: 500_000, monthProjectionPercent: projection,

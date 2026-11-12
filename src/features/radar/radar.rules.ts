@@ -7,7 +7,7 @@ import type {
 export const RADAR_THRESHOLDS = {
   projection: {
     dangerBelow: 70,
-    successAt: 90,
+    successAbove: 100,
   },
 
   daily: {
@@ -31,8 +31,8 @@ export function getProjectionTone(
 ): GoalTone {
   if (percent === null) return 'attention'
   if (
-    percent >=
-    RADAR_THRESHOLDS.projection.successAt
+    percent >
+    RADAR_THRESHOLDS.projection.successAbove
   ) {
     return 'positive'
   }

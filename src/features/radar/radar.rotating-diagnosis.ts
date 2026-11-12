@@ -6,6 +6,7 @@ import type {
 } from '../../types/radar'
 import { formatCompactCurrency } from '../../utils/formatCurrency'
 import { formatPercent } from '../../utils/formatPercent'
+import { getProjectionTone } from './radar.rules'
 import {
   getPrioritiesByCoordinator,
   getStoresByCoordinator,
@@ -189,7 +190,7 @@ function generalDiagnosis(data: RadarPayload): RadarDiagnosis {
   )
   const focus = engineFocus ?? mostAtRisk
 
-  const action = focus.monthProjectionPercent! < 90 || focus.zeroStores > 0
+  const action = getProjectionTone(focus.monthProjectionPercent) !== 'positive' || focus.zeroStores > 0
     ? `Priorizar ${focus.name} (${formatPercent(focus.monthProjectionPercent!, 0)}).`
     : 'Acompanhar as conversões nas três coordenações.'
 

@@ -206,7 +206,7 @@ function coordinatorReason(
   }
 
   if (projectionTone === 'attention') {
-    return 'Projeção abaixo do ideal'
+    return 'Projeção em atenção'
   }
 
   if (zeroStores > 0) {
@@ -266,7 +266,7 @@ function projectionIndicator(
 
   if (tone === 'attention') {
     return {
-      label: 'Abaixo da meta',
+      label: 'Projeção em atenção',
       tone,
     }
   }
