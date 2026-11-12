@@ -1,0 +1,59 @@
+/* Saída completa antes da entrada: sem textos cruzados durante a troca. */
+.diagnosis-footer-slide {
+  opacity: 0;
+  transform: translateY(3px);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+  transition-delay: 0ms;
+}
+
+.diagnosis-footer-slide[data-active="true"] {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 190ms;
+}
+
+.diagnosis-footer-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .diagnosis-footer {
+    height: 84px;
+    min-height: 84px;
+    padding-inline: 16px 12px;
+  }
+
+  .diagnosis-footer-slide {
+    gap: 9px;
+  }
+
+  .diagnosis-footer-slide > span {
+    padding-inline: 7px;
+    padding-block: 4px;
+    font-size: 9px;
+  }
+
+  .diagnosis-footer-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    white-space: normal;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagnosis-footer-slide {
+    transition: none;
+  }
+
+  .diagnosis-footer-slide[data-active="true"] {
+    transition-delay: 0ms;
+  }
+}
