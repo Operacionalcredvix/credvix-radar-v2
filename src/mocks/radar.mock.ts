@@ -65,6 +65,8 @@ export const radarMock: RadarPayload = {
 
       rankingPosition: 3,
       recoveryToday: null,
+      monthRealizedClosed: null,
+      cumulativeTargetToday: null,
 
       status: 'critical',
 
@@ -99,6 +101,8 @@ export const radarMock: RadarPayload = {
 
       rankingPosition: 2,
       recoveryToday: null,
+      monthRealizedClosed: null,
+      cumulativeTargetToday: null,
 
       status: 'attention',
 
@@ -133,6 +137,8 @@ export const radarMock: RadarPayload = {
 
       rankingPosition: 1,
       recoveryToday: null,
+      monthRealizedClosed: null,
+      cumulativeTargetToday: null,
 
       status: 'controlled',
       statusReason:
@@ -174,6 +180,13 @@ export const radarMock: RadarPayload = {
       dailyGoal: 8500,
       dailyGap: 8500,
       dailyAchievementPercent: 0,
+      monthProjectionPercent: null,
+      monthProjectionAmount: null,
+      monthProjectionGap: null,
+      projectionTone: null,
+      recoveryToday: null,
+      monthRealizedClosed: null,
+      cumulativeTargetToday: null,
 
       isZero: true,
     },
@@ -190,6 +203,13 @@ export const radarMock: RadarPayload = {
       dailyGoal: 6500,
       dailyGap: 3000,
       dailyAchievementPercent: 53.85,
+      monthProjectionPercent: null,
+      monthProjectionAmount: null,
+      monthProjectionGap: null,
+      projectionTone: null,
+      recoveryToday: null,
+      monthRealizedClosed: null,
+      cumulativeTargetToday: null,
 
       isZero: false,
     },
@@ -206,6 +226,13 @@ export const radarMock: RadarPayload = {
       dailyGoal: 8000,
       dailyGap: 200,
       dailyAchievementPercent: 97.5,
+      monthProjectionPercent: null,
+      monthProjectionAmount: null,
+      monthProjectionGap: null,
+      projectionTone: null,
+      recoveryToday: null,
+      monthRealizedClosed: null,
+      cumulativeTargetToday: null,
       isZero: false,
     },
 
