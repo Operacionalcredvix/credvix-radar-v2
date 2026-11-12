@@ -39,6 +39,9 @@ jobs:
       - name: Test deployed version detection
         run: node scripts/test-deployment-version.mjs
 
+      - name: Test rotating diagnoses and timer lifecycle
+        run: node scripts/test-diagnosis-rotation.mjs
+
       - name: Build
         run: npm run build
 
