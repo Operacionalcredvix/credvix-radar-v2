@@ -99,6 +99,8 @@ export function PriorityCard({
     ]),
   )
 
+  const zeroStores = stores.filter((store) => store.isZero).length
+
   const totalSoldToday = rankedStores.reduce(
     (sum, store) => sum + store.soldToday,
     0,
@@ -133,7 +135,9 @@ export function PriorityCard({
       className="
         flex
         h-full
+        max-h-full
         min-h-0
+        min-w-0
         flex-col
         overflow-hidden
         rounded-[10px]
@@ -145,6 +149,7 @@ export function PriorityCard({
         className="
           flex
           min-h-[57px]
+          shrink-0
           [@media(max-height:950px)]:min-h-[50px]
           items-center
           gap-[12px]
@@ -196,6 +201,7 @@ export function PriorityCard({
         className="
           flex
           min-h-[56px]
+          shrink-0
           [@media(max-height:950px)]:min-h-[49px]
           items-center
           justify-between
@@ -207,7 +213,7 @@ export function PriorityCard({
         "
       >
         <p className="text-[12px] text-[#292522]">
-          Vendido hoje · {rankedStores.length} lojas
+          Lojas zeradas: {zeroStores}
         </p>
 
         <strong className="whitespace-nowrap font-display text-[25px] font-bold tracking-[-0.035em] text-[#ef650d] [@media(max-height:950px)]:text-[23px]">
