@@ -80,7 +80,7 @@ try {
   assert.match(slots[2].diagnosis.detail, /Brasilia Centro/)
   assert.doesNotMatch(slots[2].diagnosis.detail, /Porto Seguro|Sao Mateus/)
   assert.match(slots[3].diagnosis.detail, /84%/)
-  assert.match(slots[3].diagnosis.detail, /R\$ 240 mil/)
+  assert.match(slots[3].diagnosis.detail, /R\$ 240,0 mil/)
   assert.match(slots[3].diagnosis.detail, /4 lojas zeradas/)
   assert.match(slots[3].diagnosis.detail, /Daielly/)
 
