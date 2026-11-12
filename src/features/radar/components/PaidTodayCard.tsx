@@ -165,7 +165,7 @@ export function PaidTodayCard({
 
           <div className="mt-[7px] flex items-center gap-5 text-[14px]">
             <p className="text-[#aaa29c]">
-              Conversão{' '}
+              Na esteira{' '}
               <strong className="font-semibold text-white">
                 {formatCompactCurrency(
                   summary.pendingPayment,
@@ -174,7 +174,7 @@ export function PaidTodayCard({
             </p>
 
             <p className="text-[#aaa29c]">
-              Novas vendas{' '}
+              Precisamos vender{' '}
               <strong className="font-semibold text-white">
                 {formatCompactCurrency(
                   summary.newSalesNeeded,
