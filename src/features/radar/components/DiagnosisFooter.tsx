@@ -35,6 +35,7 @@ export function DiagnosisFooter({
         relative
         flex
         min-h-[50px]
+        shrink-0
         [@media(max-height:950px)]:min-h-[46px]
         items-center
         overflow-hidden

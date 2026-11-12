@@ -79,7 +79,12 @@ export function RadarPage() {
         className="
         radar-screen-bottom
         grid
+        min-h-0
+        min-w-0
+        flex-1
+        overflow-hidden
         grid-cols-[1.38fr_1fr]
+        grid-rows-[minmax(0,1fr)]
         items-stretch
         gap-[20px]
       "
