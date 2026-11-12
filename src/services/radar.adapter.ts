@@ -30,6 +30,8 @@ type ApiCoordinator = {
   monthGoal?: number
   monthRealized?: number
   recoveryToday?: number | null
+  monthRealizedClosed?: number | null
+  cumulativeTargetToday?: number | null
   monthAchievedPercent?: number
 
   monthPercent?: number
