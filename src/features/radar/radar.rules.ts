@@ -27,8 +27,9 @@ export const RADAR_THRESHOLDS = {
 } as const
 
 export function getProjectionTone(
-  percent: number,
+  percent: number | null,
 ): GoalTone {
+  if (percent === null) return 'attention'
   if (
     percent >=
     RADAR_THRESHOLDS.projection.successAt
