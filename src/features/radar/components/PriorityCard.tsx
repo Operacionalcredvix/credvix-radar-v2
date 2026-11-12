@@ -85,7 +85,13 @@ export function PriorityCard({
   stores,
   coordinators,
 }: PriorityCardProps) {
-  const rankedStores = [...stores].sort(
+  // Apenas uma ocorrencia por id, tanto no ranking quanto nos totais.
+  const uniqueStores = new Map<string, RadarStore>()
+  for (const store of stores) {
+    uniqueStores.set(store.id, store)
+  }
+
+  const rankedStores = Array.from(uniqueStores.values()).sort(
     (a, b) =>
       b.soldToday - a.soldToday ||
       a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }) ||
@@ -99,12 +105,10 @@ export function PriorityCard({
     ]),
   )
 
-  const zeroStores = stores.filter((store) => store.isZero).length
-
-  const totalSoldToday = rankedStores.reduce(
-    (sum, store) => sum + store.soldToday,
-    0,
-  )
+  const storesWithSales = rankedStores.filter(
+    (store) => store.soldToday > 0,
+  ).length
+  const zeroStores = rankedStores.length - storesWithSales
 
   // Tempo proporcional ao total de lojas, com velocidade constante de leitura.
   const scrollDuration = String(
@@ -216,8 +220,8 @@ export function PriorityCard({
           Lojas zeradas: {zeroStores}
         </p>
 
-        <strong className="whitespace-nowrap font-display text-[25px] font-bold tracking-[-0.035em] text-[#ef650d] [@media(max-height:950px)]:text-[23px]">
-          {formatCurrencyWithoutCents(totalSoldToday)}
+        <strong className="whitespace-nowrap font-display text-[clamp(14px,1.5vw,20px)] font-bold tracking-[-0.035em] text-[#ef650d]">
+          Lojas com vendas: {storesWithSales} de {rankedStores.length}
         </strong>
       </footer>
     </section>
