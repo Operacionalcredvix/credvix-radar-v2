@@ -27,6 +27,7 @@ function StoreRankingRow({
     <li
       className="
         credvix-store-row
+        min-w-0
         grid
         grid-cols-[24px_minmax(0,1fr)_auto_auto]
         items-center
@@ -63,7 +64,7 @@ function StoreRankingRow({
         />
       </div>
 
-      <div className="credvix-store-values shrink-0 whitespace-nowrap text-right tabular-nums">
+      <div className="credvix-store-values min-w-0 shrink-0 text-right tabular-nums">
         <p className="text-[12px] text-[#817a75]">
           Vendido/Meta:{' '}
           <strong className="font-bold text-[#171412]">
@@ -161,6 +162,9 @@ export function PriorityCard({
     >
       <header
         className="
+          credvix-store-header
+          relative
+          z-10
           flex
           min-h-[57px]
           shrink-0
@@ -192,7 +196,7 @@ export function PriorityCard({
       </header>
 
       <div
-        className="credvix-store-viewport relative min-h-0 flex-1 overflow-hidden"
+        className="credvix-store-viewport relative min-h-0 min-w-0 flex-1 overflow-hidden"
         aria-label="Lojas ordenadas por vendas realizadas hoje, do maior para o menor valor"
       >
         {rankedStores.length > 0 ? (
@@ -213,6 +217,9 @@ export function PriorityCard({
 
       <footer
         className="
+          credvix-store-footer
+          relative
+          z-10
           flex
           min-h-[56px]
           shrink-0
