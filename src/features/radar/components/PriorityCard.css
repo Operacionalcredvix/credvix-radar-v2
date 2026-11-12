@@ -54,7 +54,8 @@
   }
 }
 
-@container (max-width: 650px) {
+/* O card da TV mede ~520-680 CSS px. Não quebrar suas quatro colunas nesse intervalo. */
+@container (max-width: 500px) {
   .credvix-store-row {
     grid-template-columns: 22px minmax(0, 1fr) auto;
   }
