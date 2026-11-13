@@ -49,16 +49,19 @@ function RankingPosition({
   )
 }
 
-function getAccumulatedSurplus(coordinator: Coordinator): number | null {
-  const { recoveryToday, paidToday, monthRealizedClosed, cumulativeTargetToday } = coordinator
+function getPreviousAccumulatedBalance(coordinator: Coordinator): number | null {
+  const { monthRealizedClosed, cumulativeTargetToday, dailyGoal } = coordinator
   if (
-    recoveryToday === null || monthRealizedClosed === null ||
+    monthRealizedClosed === null ||
     cumulativeTargetToday === null ||
-    !Number.isFinite(paidToday)
+    !Number.isFinite(monthRealizedClosed) ||
+    !Number.isFinite(cumulativeTargetToday) ||
+    !Number.isFinite(dailyGoal) ||
+    dailyGoal <= 0
   ) return null
 
-  const surplus = monthRealizedClosed + paidToday - cumulativeTargetToday
-  return Number.isFinite(surplus) ? Math.max(0, surplus) : null
+  const balance = monthRealizedClosed - (cumulativeTargetToday - dailyGoal)
+  return Number.isFinite(balance) ? balance : null
 }
 
 function CoordinatorRow({
@@ -72,13 +75,15 @@ function CoordinatorRow({
 
   const isCritical = dailyTone === 'critical'
   const recoveryToday = coordinator.recoveryToday
+  const previousBalance = getPreviousAccumulatedBalance(coordinator)
   const isOnTrack =
+    previousBalance !== null &&
+    previousBalance >= -0.005 &&
     recoveryToday !== null &&
     Number.isFinite(recoveryToday) &&
-    Number.isFinite(coordinator.paidToday) &&
-    coordinator.paidToday + 0.005 >= recoveryToday
+    recoveryToday <= coordinator.dailyGoal + 0.005
   const surplus = isOnTrack
-    ? getAccumulatedSurplus(coordinator)
+    ? Math.max(0, previousBalance)
     : null
 
   return (
